@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Bell, Settings as SettingsIcon, Moon, Sun, Layout, Type } from 'lucide-react';
+import { X, Bell, Settings as SettingsIcon, Moon, Sun, Layout, Type, Smartphone } from 'lucide-react';
 import { getUserSettings, saveUserSettings, checkNotificationPermission } from '../services/notificationService';
+import { appIcons, getSelectedIcon, setSelectedIcon } from '../services/pwaService';
 import { feedCategories } from '../services/rssService';
+import IconSelector from './IconSelector';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -10,12 +12,14 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [settings, setSettings] = useState(getUserSettings());
-  const [activeTab, setActiveTab] = useState<'notifications' | 'preferences'>('notifications');
+  const [activeTab, setActiveTab] = useState<'notifications' | 'preferences' | 'pwa'>('notifications');
   const [keyword, setKeyword] = useState('');
+  const [selectedIconId, setSelectedIconId] = useState(getSelectedIcon().id);
 
   useEffect(() => {
     if (isOpen) {
       setSettings(getUserSettings());
+      setSelectedIconId(getSelectedIcon().id);
     }
   }, [isOpen]);
 
@@ -95,11 +99,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     saveUserSettings(newSettings);
   };
 
+  const handleIconSelect = (iconId: string) => {
+    setSelectedIconId(iconId);
+    setSelectedIcon(iconId);
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-800">設定</h2>
           <button
@@ -137,9 +146,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               表示設定
             </span>
           </button>
+          <button
+            className={`flex-1 py-4 text-center font-medium transition-colors ${
+              activeTab === 'pwa'
+                ? 'text-[#CC0000] border-b-2 border-[#CC0000]'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => setActiveTab('pwa')}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <Smartphone size={18} />
+              アプリ設定
+            </span>
+          </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
           {activeTab === 'notifications' ? (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -210,7 +232,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : activeTab === 'preferences' ? (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium text-gray-800 mb-3">テーマ</h3>
@@ -285,6 +307,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     <Layout size={18} />
                     ゆったり
                   </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <IconSelector
+                icons={appIcons}
+                selectedIconId={selectedIconId}
+                onIconSelect={handleIconSelect}
+              />
+              
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium text-gray-800 mb-3">PWA について</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-800 mb-2">プログレッシブウェブアプリ (PWA)</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• ホーム画面に追加してアプリのように使用できます</li>
+                    <li>• オフラインでも一部の機能が利用可能です</li>
+                    <li>• プッシュ通知でニュースをお知らせします</li>
+                    <li>• 高速で軽量なアプリ体験を提供します</li>
+                  </ul>
                 </div>
               </div>
             </div>
