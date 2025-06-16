@@ -6,7 +6,9 @@ import Footer from './components/Footer';
 import LoadingState from './components/LoadingState';
 import ErrorState from './components/ErrorState';
 import SearchResults from './components/SearchResults';
+import PWAInstallButton from './components/PWAInstallButton';
 import { fetchNewsByCategory, fetchAllNews, searchNews } from './services/rssService';
+import { initializePWA } from './services/pwaService';
 import { NewsItem } from './types';
 
 function App() {
@@ -16,6 +18,11 @@ function App() {
   const [error, setError] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<NewsItem[]>([]);
+  
+  // Initialize PWA on mount
+  useEffect(() => {
+    initializePWA();
+  }, []);
   
   // Check for article query parameter on mount
   useEffect(() => {
@@ -139,6 +146,7 @@ function App() {
       </main>
       
       <Footer setActiveCategory={setActiveCategory} />
+      <PWAInstallButton />
     </div>
   );
 }
