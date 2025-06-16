@@ -15,34 +15,72 @@ export default defineConfig({
         theme_color: '#CC0000',
         background_color: '#ffffff',
         display: 'standalone',
+        start_url: '/',
         icons: [
           {
-            src: 'pwa-64x64.png',
+            src: 'https://photo-ten-iota.vercel.app/nipponnews/default.png',
             sizes: '64x64',
             type: 'image/png'
           },
           {
-            src: 'pwa-192x192.png',
+            src: 'https://photo-ten-iota.vercel.app/nipponnews/default.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'https://photo-ten-iota.vercel.app/nipponnews/default.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'maskable-icon-512x512.png',
+            src: 'https://photo-ten-iota.vercel.app/nipponnews/default.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
           }
         ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\.allorigins\.win\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/photo-ten-iota\.vercel\.app\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
+              }
+            }
+          }
+        ]
       }
     })
   ],
+  define: {
+    global: 'globalThis',
+  },
+  resolve: {
+    alias: {
+      events: 'events',
+      url: 'url'
+    }
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
+    include: ['events', 'url']
   },
 });
