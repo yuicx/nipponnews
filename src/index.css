@@ -1,3 +1,202 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Font size classes */
+.text-small {
+  font-size: 0.875rem;
+}
+
+.text-medium {
+  font-size: 1rem;
+}
+
+.text-large {
+  font-size: 1.125rem;
+}
+
+/* Layout classes */
+.compact-layout .container {
+  max-width: 1400px;
+}
+
+.comfortable-layout .container {
+  max-width: 1200px;
+}
+
+.magazine-layout .container {
+  max-width: 1000px;
+}
+
+/* High contrast mode */
+.high-contrast {
+  --tw-text-opacity: 1;
+  --tw-bg-opacity: 1;
+}
+
+.high-contrast .text-gray-600 {
+  color: rgb(0 0 0 / var(--tw-text-opacity));
+}
+
+.high-contrast .text-gray-500 {
+  color: rgb(55 65 81 / var(--tw-text-opacity));
+}
+
+.high-contrast .bg-gray-50 {
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+}
+
+.high-contrast .border-gray-200 {
+  border-color: rgb(0 0 0 / 0.3);
+}
+
+/* Reading mode */
+.reading-mode {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  line-height: 1.7;
+}
+
+.reading-mode h1,
+.reading-mode h2,
+.reading-mode h3,
+.reading-mode h4,
+.reading-mode h5,
+.reading-mode h6 {
+  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  line-height: 1.3;
+}
+
+/* Reduced motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Dark mode improvements - Only apply when .dark class is present */
+.dark {
+  color-scheme: dark;
+}
+
+.dark .bg-gray-50 {
+  background-color: rgb(17 24 39) !important;
+}
+
+.dark .bg-white {
+  background-color: rgb(31 41 55) !important;
+}
+
+.dark .text-gray-800 {
+  color: rgb(243 244 246) !important;
+}
+
+.dark .text-gray-600 {
+  color: rgb(209 213 219) !important;
+}
+
+.dark .text-gray-500 {
+  color: rgb(156 163 175) !important;
+}
+
+.dark .border-gray-200 {
+  border-color: rgb(55 65 81) !important;
+}
+
+.dark .border-gray-100 {
+  border-color: rgb(75 85 99) !important;
+}
+
+/* Ensure light mode colors are properly applied */
+:not(.dark) .bg-gray-50 {
+  background-color: rgb(249 250 251) !important;
+}
+
+:not(.dark) .bg-white {
+  background-color: rgb(255 255 255) !important;
+}
+
+:not(.dark) .text-gray-800 {
+  color: rgb(31 41 55) !important;
+}
+
+:not(.dark) .text-gray-600 {
+  color: rgb(75 85 99) !important;
+}
+
+:not(.dark) .text-gray-500 {
+  color: rgb(107 114 128) !important;
+}
+
+:not(.dark) .border-gray-200 {
+  border-color: rgb(229 231 235) !important;
+}
+
+:not(.dark) .border-gray-100 {
+  border-color: rgb(243 244 246) !important;
+}
+
+/* Custom scrollbar for dark mode */
+.dark::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark::-webkit-scrollbar-track {
+  background: rgb(31 41 55);
+}
+
+.dark::-webkit-scrollbar-thumb {
+  background: rgb(75 85 99);
+  border-radius: 4px;
+}
+
+.dark::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Focus styles for accessibility */
+.focus\:ring-2:focus {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Skip to content link for accessibility */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 1000;
+}
+
+.skip-to-content:focus {
+  top: 6px;
+}
