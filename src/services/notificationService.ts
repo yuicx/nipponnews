@@ -1,5 +1,6 @@
+import { getUserSettings, UserSettings } from './settingsService';
+
 const NOTIFICATION_PERMISSION_KEY = 'notification-permission-status';
-const USER_SETTINGS_KEY = 'user-settings';
 
 export const checkNotificationPermission = async (): Promise<boolean> => {
   if (!('Notification' in window)) {
@@ -21,32 +22,52 @@ export const sendNotification = (title: string, options: NotificationOptions) =>
     return;
   }
 
+  const settings = getUserSettings();
+  
+  // Check if notifications are enabled
+  if (!settings.notifications.enabled) {
+    return;
+  }
+
+  // Check quiet hours
+  if (settings.notifications.quietHours.enabled) {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const startTime = parseTime(settings.notifications.quietHours.start);
+    const endTime = parseTime(settings.notifications.quietHours.end);
+    
+    if (isInQuietHours(currentTime, startTime, endTime)) {
+      return;
+    }
+  }
+
   if (Notification.permission === 'granted') {
-    new Notification(title, options);
+    const notification = new Notification(title, {
+      ...options,
+      silent: !settings.notifications.sound
+    });
+
+    // Handle vibration if supported
+    if (settings.notifications.vibration && 'vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200]);
+    }
+
+    return notification;
   }
 };
 
-export const getUserSettings = () => {
-  const settings = localStorage.getItem(USER_SETTINGS_KEY);
-  if (settings) {
-    return JSON.parse(settings);
-  }
-  return {
-    notifications: {
-      enabled: false,
-      categories: [],
-      keywords: [],
-      frequency: 'instant'
-    },
-    preferences: {
-      darkMode: false,
-      fontSize: 'medium',
-      layout: 'comfortable'
-    },
-    savedArticles: []
-  };
+const parseTime = (timeString: string): number => {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
 };
 
-export const saveUserSettings = (settings: any) => {
-  localStorage.setItem(USER_SETTINGS_KEY, JSON.stringify(settings));
+const isInQuietHours = (currentTime: number, startTime: number, endTime: number): boolean => {
+  if (startTime <= endTime) {
+    return currentTime >= startTime && currentTime <= endTime;
+  } else {
+    // Quiet hours span midnight
+    return currentTime >= startTime || currentTime <= endTime;
+  }
 };
+
+export { getUserSettings as getUserSettings, saveUserSettings as saveUserSettings } from './settingsService';
