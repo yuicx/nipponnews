@@ -9,6 +9,7 @@ import SearchResults from './components/SearchResults';
 import PWAInstallButton from './components/PWAInstallButton';
 import { fetchNewsByCategory, fetchAllNews, searchNews } from './services/rssService';
 import { initializePWA } from './services/pwaService';
+import { initializeSettings, getUserSettings } from './services/settingsService';
 import { NewsItem } from './types';
 
 function App() {
@@ -18,11 +19,34 @@ function App() {
   const [error, setError] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<NewsItem[]>([]);
+  const [settings, setSettings] = useState(getUserSettings());
   
-  // Initialize PWA on mount
+  // Initialize PWA and settings on mount
   useEffect(() => {
     initializePWA();
+    initializeSettings();
+    
+    // Listen for settings changes
+    const handleStorageChange = () => {
+      setSettings(getUserSettings());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+  
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (!settings.preferences.autoRefresh) return;
+    
+    const interval = setInterval(() => {
+      if (!searchQuery) {
+        loadNews();
+      }
+    }, settings.preferences.refreshInterval);
+    
+    return () => clearInterval(interval);
+  }, [settings.preferences.autoRefresh, settings.preferences.refreshInterval, searchQuery, activeCategory]);
   
   // Check for article query parameter on mount
   useEffect(() => {
@@ -54,7 +78,9 @@ function App() {
         newsData = await fetchNewsByCategory(activeCategory);
       }
       
-      setNews(newsData);
+      // Apply articles per page limit
+      const limitedNews = newsData.slice(0, settings.preferences.articlesPerPage);
+      setNews(limitedNews);
     } catch (err) {
       console.error('Failed to fetch news:', err);
       setError(true);
@@ -76,7 +102,8 @@ function App() {
     
     try {
       const results = await searchNews(query);
-      setSearchResults(results);
+      const limitedResults = results.slice(0, settings.preferences.articlesPerPage);
+      setSearchResults(limitedResults);
     } catch (err) {
       console.error('Search failed:', err);
     } finally {
@@ -95,7 +122,7 @@ function App() {
     // Clear search when changing categories
     clearSearch();
     loadNews();
-  }, [activeCategory]);
+  }, [activeCategory, settings.preferences.articlesPerPage]);
   
   // Get the correct title based on active category
   const getCategoryTitle = () => {
@@ -111,15 +138,31 @@ function App() {
     }
   };
   
+  // Apply layout classes based on settings
+  const getLayoutClasses = () => {
+    const baseClasses = 'flex flex-col min-h-screen';
+    const layoutClasses = {
+      compact: 'compact-layout',
+      comfortable: 'comfortable-layout',
+      magazine: 'magazine-layout'
+    };
+    
+    return `${baseClasses} ${layoutClasses[settings.preferences.layout]} ${
+      settings.preferences.darkMode ? 'dark' : ''
+    } ${settings.preferences.highContrast ? 'high-contrast' : ''} ${
+      settings.preferences.reducedMotion ? 'reduce-motion' : ''
+    } ${settings.preferences.readingMode ? 'reading-mode' : ''}`;
+  };
+  
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className={getLayoutClasses()}>
       <Header 
         setActiveCategory={setActiveCategory} 
         activeCategory={activeCategory}
         onSearch={handleSearch}
       />
       
-      <main className="flex-grow py-4">
+      <main className="flex-grow py-4 bg-gray-50 dark:bg-gray-900">
         {isLoading ? (
           <LoadingState />
         ) : error ? (
@@ -134,10 +177,16 @@ function App() {
               />
             ) : (
               <>
-                <FeaturedNews newsItems={news} />
+                <FeaturedNews 
+                  newsItems={news} 
+                  showImages={settings.preferences.showImages}
+                  showSummary={settings.preferences.showSummary}
+                />
                 <NewsList 
                   newsItems={news} 
                   title={getCategoryTitle()}
+                  showImages={settings.preferences.showImages}
+                  showSummary={settings.preferences.showSummary}
                 />
               </>
             )}
