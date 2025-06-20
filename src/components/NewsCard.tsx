@@ -3,6 +3,7 @@ import { NewsItem } from '../types';
 import { getRelativeTime } from '../utils/dateUtils';
 import { ExternalLink, Share2, Twitter, Globe } from 'lucide-react';
 import { getUserSettings } from '../services/settingsService';
+import AISummary from './AISummary';
 
 interface NewsCardProps {
   newsItem: NewsItem;
@@ -131,6 +132,7 @@ const NewsCard: React.FC<NewsCardProps> = ({
                 </button>
               </div>
             </div>
+            <AISummary newsItem={newsItem} />
           </div>
         )}
       </div>
@@ -200,6 +202,8 @@ const NewsCard: React.FC<NewsCardProps> = ({
               </button>
             </div>
           </div>
+          
+          <AISummary newsItem={newsItem} />
         </div>
       </div>
     </div>
