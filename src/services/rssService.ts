@@ -56,6 +56,13 @@ export const feedCategories = [
 // Default image for articles without images
 const DEFAULT_NEWS_IMAGE = 'https://photo-ten-iota.vercel.app/NipponNewsImage.png';
 
+// Multiple CORS proxy options for better reliability
+const CORS_PROXIES = [
+  'https://corsproxy.io/?',
+  'https://api.allorigins.win/get?url=',
+  'https://cors-anywhere.herokuapp.com/'
+];
+
 // Simple RSS parser without external dependencies
 const parseRSSFeed = async (xmlText: string): Promise<any[]> => {
   const parser = new DOMParser();
@@ -94,18 +101,59 @@ const parseRSSFeed = async (xmlText: string): Promise<any[]> => {
   return parsedItems;
 };
 
+// Try multiple CORS proxies with fallback
+const fetchWithProxy = async (url: string): Promise<string> => {
+  let lastError: Error | null = null;
+  
+  for (const proxy of CORS_PROXIES) {
+    try {
+      let proxyUrl: string;
+      let response: Response;
+      
+      if (proxy.includes('allorigins.win')) {
+        proxyUrl = `${proxy}${encodeURIComponent(url)}`;
+        response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.contents;
+      } else {
+        proxyUrl = `${proxy}${encodeURIComponent(url)}`;
+        response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/xml, text/xml, */*',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.text();
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch with proxy ${proxy}:`, error);
+      lastError = error as Error;
+      continue;
+    }
+  }
+  
+  throw lastError || new Error('All CORS proxies failed');
+};
+
 export const fetchRssFeed = async (url: string, source: string): Promise<NewsItem[]> => {
   try {
-    // Use a more reliable CORS proxy
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const response = await fetch(proxyUrl);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const items = await parseRSSFeed(data.contents);
+    const xmlContent = await fetchWithProxy(url);
+    const items = await parseRSSFeed(xmlContent);
     
     return items.map(item => ({
       id: generateId(),
