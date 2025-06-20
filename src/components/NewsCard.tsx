@@ -38,6 +38,11 @@ const NewsCard: React.FC<NewsCardProps> = ({
     }
   };
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement;
+    target.src = 'https://photo-ten-iota.vercel.app/NipponNewsImage.png';
+  };
+
   const articleUrl = `${window.location.origin}?article=${encodeURIComponent(newsItem.link)}`;
   
   if (featured) {
@@ -48,6 +53,7 @@ const NewsCard: React.FC<NewsCardProps> = ({
             <img 
               src={newsItem.imageUrl} 
               alt={newsItem.title}
+              onError={handleImageError}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
@@ -139,6 +145,7 @@ const NewsCard: React.FC<NewsCardProps> = ({
             <img 
               src={newsItem.imageUrl} 
               alt={newsItem.title}
+              onError={handleImageError}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute top-3 left-3">
