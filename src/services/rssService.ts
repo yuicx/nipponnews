@@ -53,6 +53,9 @@ export const feedCategories = [
   }
 ];
 
+// Default image for articles without images
+const DEFAULT_NEWS_IMAGE = 'https://photo-ten-iota.vercel.app/NipponNewsImage.png';
+
 // Simple RSS parser without external dependencies
 const parseRSSFeed = async (xmlText: string): Promise<any[]> => {
   const parser = new DOMParser();
@@ -67,12 +70,24 @@ const parseRSSFeed = async (xmlText: string): Promise<any[]> => {
     const pubDate = item.querySelector('pubDate')?.textContent || '';
     const description = item.querySelector('description')?.textContent || '';
     
+    // Try to extract image from description or enclosure
+    let imageUrl = extractImageUrl(description);
+    
+    // If no image found in description, check for enclosure
+    if (!imageUrl || imageUrl === DEFAULT_NEWS_IMAGE) {
+      const enclosure = item.querySelector('enclosure[type^="image"]');
+      if (enclosure) {
+        imageUrl = enclosure.getAttribute('url') || imageUrl;
+      }
+    }
+    
     parsedItems.push({
       title,
       link,
       pubDate,
       content: description,
-      contentSnippet: description.replace(/<[^>]*>/g, '').substring(0, 200)
+      contentSnippet: description.replace(/<[^>]*>/g, '').substring(0, 200),
+      imageUrl
     });
   });
   
@@ -99,7 +114,7 @@ export const fetchRssFeed = async (url: string, source: string): Promise<NewsIte
       pubDate: item.pubDate || new Date().toISOString(),
       content: item.content || '',
       contentSnippet: item.contentSnippet || '',
-      imageUrl: extractImageUrl(item.content || ''),
+      imageUrl: item.imageUrl || DEFAULT_NEWS_IMAGE,
       source
     }));
   } catch (error) {
@@ -110,9 +125,28 @@ export const fetchRssFeed = async (url: string, source: string): Promise<NewsIte
 };
 
 const extractImageUrl = (content: string): string => {
-  const defaultImage = 'https://photo-ten-iota.vercel.app/NipponNewsImage.png';
-  const imgMatch = content.match(/<img[^>]+src="([^">]+)"/);
-  return imgMatch ? imgMatch[1] : defaultImage;
+  if (!content) return DEFAULT_NEWS_IMAGE;
+  
+  // Try multiple image extraction patterns
+  const patterns = [
+    /<img[^>]+src="([^">]+)"/i,
+    /<img[^>]+src='([^'>]+)'/i,
+    /src="([^"]*\.(jpg|jpeg|png|gif|webp)[^"]*)"/i,
+    /src='([^']*\.(jpg|jpeg|png|gif|webp)[^']*)'/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = content.match(pattern);
+    if (match && match[1]) {
+      const imageUrl = match[1];
+      // Validate that it's a proper image URL
+      if (imageUrl.startsWith('http') && /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(imageUrl)) {
+        return imageUrl;
+      }
+    }
+  }
+  
+  return DEFAULT_NEWS_IMAGE;
 };
 
 // Mock news data as fallback
@@ -125,7 +159,7 @@ const getMockNews = (source: string): NewsItem[] => {
       pubDate: new Date().toISOString(),
       content: 'ニュースフィードの準備中です。しばらくお待ちください。',
       contentSnippet: 'ニュースフィードの準備中です。しばらくお待ちください。',
-      imageUrl: 'https://photo-ten-iota.vercel.app/NipponNewsImage.png',
+      imageUrl: DEFAULT_NEWS_IMAGE,
       source
     },
     {
@@ -135,7 +169,7 @@ const getMockNews = (source: string): NewsItem[] => {
       pubDate: new Date(Date.now() - 3600000).toISOString(),
       content: 'より良いサービス提供のため、システムの改善を行っています。',
       contentSnippet: 'より良いサービス提供のため、システムの改善を行っています。',
-      imageUrl: 'https://photo-ten-iota.vercel.app/NipponNewsImage.png',
+      imageUrl: DEFAULT_NEWS_IMAGE,
       source
     },
     {
@@ -145,7 +179,7 @@ const getMockNews = (source: string): NewsItem[] => {
       pubDate: new Date(Date.now() - 7200000).toISOString(),
       content: '複数のニュースソースから最新情報をお届けしています。',
       contentSnippet: '複数のニュースソースから最新情報をお届けしています。',
-      imageUrl: 'https://photo-ten-iota.vercel.app/NipponNewsImage.png',
+      imageUrl: DEFAULT_NEWS_IMAGE,
       source
     }
   ];
