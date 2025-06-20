@@ -144,9 +144,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">設定</h2>
           <button
             onClick={onClose}
@@ -156,11 +156,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        <div className="flex border-b dark:border-gray-700">
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button
             className={`flex-1 py-4 text-center font-medium transition-colors ${
               activeTab === 'notifications'
-                ? 'text-[#CC0000] border-b-2 border-[#CC0000]'
+                ? 'text-[#CC0000] border-b-2 border-[#CC0000] bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
             }`}
             onClick={() => setActiveTab('notifications')}
@@ -173,7 +173,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           <button
             className={`flex-1 py-4 text-center font-medium transition-colors ${
               activeTab === 'preferences'
-                ? 'text-[#CC0000] border-b-2 border-[#CC0000]'
+                ? 'text-[#CC0000] border-b-2 border-[#CC0000] bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
             }`}
             onClick={() => setActiveTab('preferences')}
@@ -186,7 +186,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           <button
             className={`flex-1 py-4 text-center font-medium transition-colors ${
               activeTab === 'privacy'
-                ? 'text-[#CC0000] border-b-2 border-[#CC0000]'
+                ? 'text-[#CC0000] border-b-2 border-[#CC0000] bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
             }`}
             onClick={() => setActiveTab('privacy')}
@@ -199,7 +199,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           <button
             className={`flex-1 py-4 text-center font-medium transition-colors ${
               activeTab === 'pwa'
-                ? 'text-[#CC0000] border-b-2 border-[#CC0000]'
+                ? 'text-[#CC0000] border-b-2 border-[#CC0000] bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
             }`}
             onClick={() => setActiveTab('pwa')}
@@ -211,7 +211,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
+        <div className="p-6 overflow-y-auto max-h-[60vh] bg-white dark:bg-gray-800">
           {activeTab === 'notifications' ? (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -233,8 +233,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {settings.notifications.sound ? <Volume2 size={18} /> : <VolumeX size={18} />}
-                    <span>通知音</span>
+                    {settings.notifications.sound ? <Volume2 size={18} className="text-gray-600 dark:text-gray-300" /> : <VolumeX size={18} className="text-gray-600 dark:text-gray-300" />}
+                    <span className="text-gray-800 dark:text-white">通知音</span>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -249,8 +249,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Vibrate size={18} />
-                    <span>バイブレーション</span>
+                    <Vibrate size={18} className="text-gray-600 dark:text-gray-300" />
+                    <span className="text-gray-800 dark:text-white">バイブレーション</span>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -336,7 +336,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                         onChange={() => handleCategoryToggle(category.id)}
                         className="rounded border-gray-300 text-[#CC0000] focus:ring-[#CC0000]"
                       />
-                      <span className="dark:text-gray-300">{category.name}</span>
+                      <span className="text-gray-800 dark:text-gray-300">{category.name}</span>
                     </label>
                   ))}
                 </div>
@@ -465,8 +465,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Image size={18} />
-                      <span className="dark:text-gray-300">画像を表示</span>
+                      <Image size={18} className="text-gray-600 dark:text-gray-300" />
+                      <span className="text-gray-800 dark:text-white">画像を表示</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -481,8 +481,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <FileText size={18} />
-                      <span className="dark:text-gray-300">要約を表示</span>
+                      <FileText size={18} className="text-gray-600 dark:text-gray-300" />
+                      <span className="text-gray-800 dark:text-white">要約を表示</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -497,8 +497,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <RefreshCw size={18} />
-                      <span className="dark:text-gray-300">自動更新</span>
+                      <RefreshCw size={18} className="text-gray-600 dark:text-gray-300" />
+                      <span className="text-gray-800 dark:text-white">自動更新</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -513,8 +513,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Eye size={18} />
-                      <span className="dark:text-gray-300">読みやすさモード</span>
+                      <Eye size={18} className="text-gray-600 dark:text-gray-300" />
+                      <span className="text-gray-800 dark:text-white">読みやすさモード</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -529,8 +529,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Contrast size={18} />
-                      <span className="dark:text-gray-300">高コントラスト</span>
+                      <Contrast size={18} className="text-gray-600 dark:text-gray-300" />
+                      <span className="text-gray-800 dark:text-white">高コントラスト</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -545,8 +545,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Zap size={18} />
-                      <span className="dark:text-gray-300">アニメーション軽減</span>
+                      <Zap size={18} className="text-gray-600 dark:text-gray-300" />
+                      <span className="text-gray-800 dark:text-white">アニメーション軽減</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -689,7 +689,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              <div className="border-t pt-6 dark:border-gray-700">
+              <div className="border-t pt-6 border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">データ管理</h3>
                 <div className="space-y-3">
                   <button className="w-full text-left p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
@@ -715,7 +715,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 onIconSelect={handleIconSelect}
               />
               
-              <div className="border-t pt-6 dark:border-gray-700">
+              <div className="border-t pt-6 border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-3">PWA について</h3>
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                   <h4 className="font-medium text-gray-800 dark:text-white mb-2">プログレッシブウェブアプリ (PWA)</h4>
