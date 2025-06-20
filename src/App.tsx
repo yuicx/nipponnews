@@ -7,9 +7,11 @@ import LoadingState from './components/LoadingState';
 import ErrorState from './components/ErrorState';
 import SearchResults from './components/SearchResults';
 import PWAInstallButton from './components/PWAInstallButton';
+import AIRecommendations from './components/AIRecommendations';
 import { fetchNewsByCategory, fetchAllNews, searchNews } from './services/rssService';
 import { initializePWA } from './services/pwaService';
 import { initializeSettings, getUserSettings } from './services/settingsService';
+import { geminiService } from './services/geminiService';
 import { NewsItem } from './types';
 
 function App() {
@@ -26,9 +28,27 @@ function App() {
     initializePWA();
     initializeSettings();
     
+    // Initialize Gemini service if API key is available
+    const currentSettings = getUserSettings();
+    if (currentSettings.ai.geminiApiKey) {
+      geminiService.setConfig({
+        apiKey: currentSettings.ai.geminiApiKey,
+        model: currentSettings.ai.model
+      });
+    }
+    
     // Listen for settings changes
     const handleStorageChange = () => {
-      setSettings(getUserSettings());
+      const newSettings = getUserSettings();
+      setSettings(newSettings);
+      
+      // Update Gemini service configuration
+      if (newSettings.ai.geminiApiKey) {
+        geminiService.setConfig({
+          apiKey: newSettings.ai.geminiApiKey,
+          model: newSettings.ai.model
+        });
+      }
     };
     
     window.addEventListener('storage', handleStorageChange);
@@ -177,6 +197,7 @@ function App() {
               />
             ) : (
               <>
+                <AIRecommendations newsItems={news} />
                 <FeaturedNews 
                   newsItems={news} 
                   showImages={settings.preferences.showImages}
