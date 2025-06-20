@@ -32,6 +32,17 @@ export interface UserSettings {
     personalizedAds: boolean;
     dataCollection: boolean;
   };
+  ai: {
+    geminiApiKey: string;
+    model: string;
+    enableSummary: boolean;
+    enableRecommendations: boolean;
+    interests: {
+      topics: string[];
+      keywords: string[];
+      categories: string[];
+    };
+  };
   savedArticles: string[];
 }
 
@@ -70,6 +81,17 @@ export const getDefaultSettings = (): UserSettings => ({
     cookies: true,
     personalizedAds: false,
     dataCollection: true
+  },
+  ai: {
+    geminiApiKey: '',
+    model: 'gemini-1.5-flash',
+    enableSummary: false,
+    enableRecommendations: false,
+    interests: {
+      topics: [],
+      keywords: [],
+      categories: []
+    }
   },
   savedArticles: []
 });
