@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Bell, Settings as SettingsIcon, Moon, Sun, Layout, Type, Smartphone, Shield, Eye, Volume2, VolumeX, Vibrate, Clock, Globe, RefreshCw, Image, FileText, Hash, Contrast, Zap } from 'lucide-react';
+import { X, Bell, Settings as SettingsIcon, Moon, Sun, Layout, Type, Smartphone, Shield, Eye, Volume2, VolumeX, Vibrate, Clock, Globe, RefreshCw, Image, FileText, Hash, Contrast, Zap, Brain, Sparkles, Key, Plus, Trash2 } from 'lucide-react';
 import { getUserSettings, saveUserSettings, UserSettings } from '../services/settingsService';
 import { checkNotificationPermission } from '../services/notificationService';
 import { appIcons, getSelectedIcon, setSelectedIcon } from '../services/pwaService';
 import { feedCategories } from '../services/rssService';
+import { geminiService } from '../services/geminiService';
 import IconSelector from './IconSelector';
 
 interface SettingsModalProps {
@@ -13,9 +14,12 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [settings, setSettings] = useState<UserSettings>(getUserSettings());
-  const [activeTab, setActiveTab] = useState<'notifications' | 'preferences' | 'privacy' | 'pwa'>('notifications');
+  const [activeTab, setActiveTab] = useState<'notifications' | 'preferences' | 'privacy' | 'pwa' | 'ai'>('notifications');
   const [keyword, setKeyword] = useState('');
   const [selectedIconId, setSelectedIconId] = useState(getSelectedIcon().id);
+  const [newTopic, setNewTopic] = useState('');
+  const [newKeyword, setNewKeyword] = useState('');
+  const [apiKeyVisible, setApiKeyVisible] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -27,6 +31,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const updateSettings = (newSettings: UserSettings) => {
     setSettings(newSettings);
     saveUserSettings(newSettings);
+    
+    // Update Gemini service configuration
+    if (newSettings.ai.geminiApiKey) {
+      geminiService.setConfig({
+        apiKey: newSettings.ai.geminiApiKey,
+        model: newSettings.ai.model
+      });
+    }
   };
 
   const handleNotificationToggle = async () => {
@@ -136,6 +148,59 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     updateSettings(newSettings);
   };
 
+  const handleAISettingChange = (key: string, value: any) => {
+    const newSettings = {
+      ...settings,
+      ai: {
+        ...settings.ai,
+        [key]: value
+      }
+    };
+    updateSettings(newSettings);
+  };
+
+  const handleInterestChange = (type: 'topics' | 'keywords' | 'categories', items: string[]) => {
+    const newSettings = {
+      ...settings,
+      ai: {
+        ...settings.ai,
+        interests: {
+          ...settings.ai.interests,
+          [type]: items
+        }
+      }
+    };
+    updateSettings(newSettings);
+  };
+
+  const handleAddTopic = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTopic.trim()) return;
+    
+    const updatedTopics = [...settings.ai.interests.topics, newTopic.trim()];
+    handleInterestChange('topics', updatedTopics);
+    setNewTopic('');
+  };
+
+  const handleAddInterestKeyword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKeyword.trim()) return;
+    
+    const updatedKeywords = [...settings.ai.interests.keywords, newKeyword.trim()];
+    handleInterestChange('keywords', updatedKeywords);
+    setNewKeyword('');
+  };
+
+  const handleRemoveTopic = (topic: string) => {
+    const updatedTopics = settings.ai.interests.topics.filter(t => t !== topic);
+    handleInterestChange('topics', updatedTopics);
+  };
+
+  const handleRemoveInterestKeyword = (keyword: string) => {
+    const updatedKeywords = settings.ai.interests.keywords.filter(k => k !== keyword);
+    handleInterestChange('keywords', updatedKeywords);
+  };
+
   const handleIconSelect = (iconId: string) => {
     setSelectedIconId(iconId);
     setSelectedIcon(iconId);
@@ -156,9 +221,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
           <button
-            className={`flex-1 py-4 text-center font-medium transition-colors ${
+            className={`flex-1 py-4 text-center font-medium transition-colors whitespace-nowrap ${
               activeTab === 'notifications'
                 ? 'text-[#CC0000] border-b-2 border-[#CC0000] bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
@@ -171,7 +236,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             </span>
           </button>
           <button
-            className={`flex-1 py-4 text-center font-medium transition-colors ${
+            className={`flex-1 py-4 text-center font-medium transition-colors whitespace-nowrap ${
               activeTab === 'preferences'
                 ? 'text-[#CC0000] border-b-2 border-[#CC0000] bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
@@ -184,7 +249,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             </span>
           </button>
           <button
-            className={`flex-1 py-4 text-center font-medium transition-colors ${
+            className={`flex-1 py-4 text-center font-medium transition-colors whitespace-nowrap ${
+              activeTab === 'ai'
+                ? 'text-[#CC0000] border-b-2 border-[#CC0000] bg-red-50 dark:bg-red-900/20'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
+            onClick={() => setActiveTab('ai')}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <Brain size={18} />
+              AI設定
+            </span>
+          </button>
+          <button
+            className={`flex-1 py-4 text-center font-medium transition-colors whitespace-nowrap ${
               activeTab === 'privacy'
                 ? 'text-[#CC0000] border-b-2 border-[#CC0000] bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
@@ -197,7 +275,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             </span>
           </button>
           <button
-            className={`flex-1 py-4 text-center font-medium transition-colors ${
+            className={`flex-1 py-4 text-center font-medium transition-colors whitespace-nowrap ${
               activeTab === 'pwa'
                 ? 'text-[#CC0000] border-b-2 border-[#CC0000] bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
@@ -376,6 +454,209 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   ))}
                 </div>
               </div>
+            </div>
+          ) : activeTab === 'ai' ? (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 mb-2">
+                  <Sparkles size={20} />
+                  <h3 className="text-lg font-medium">AI機能について</h3>
+                </div>
+                <p className="text-sm text-purple-600 dark:text-purple-400 mb-3">
+                  Google Gemini AIを使用してニュースの要約と個人化された推薦を提供します。
+                </p>
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                  <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-2">APIキーの取得方法：</h4>
+                  <ol className="text-sm text-blue-600 dark:text-blue-400 space-y-1">
+                    <li>1. <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Google AI Studio</a> にアクセス</li>
+                    <li>2. Googleアカウントでログイン</li>
+                    <li>3. 「Create API Key」をクリック</li>
+                    <li>4. 生成されたAPIキーをコピーして下記に入力</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <Key size={16} className="inline mr-1" />
+                  Gemini API キー
+                </label>
+                <div className="relative">
+                  <input
+                    type={apiKeyVisible ? 'text' : 'password'}
+                    value={settings.ai.geminiApiKey}
+                    onChange={(e) => handleAISettingChange('geminiApiKey', e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setApiKeyVisible(!apiKeyVisible)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <Eye size={16} />
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  APIキーはブラウザにのみ保存され、外部に送信されません
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">AIモデル</label>
+                <select
+                  value={settings.ai.model}
+                  onChange={(e) => handleAISettingChange('model', e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="gemini-1.5-flash">Gemini 1.5 Flash (推奨)</option>
+                  <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                  <option value="gemini-pro">Gemini Pro</option>
+                </select>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-800 dark:text-white">AI要約機能</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">記事の要約と重要ポイントを表示</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={settings.ai.enableSummary}
+                      onChange={(e) => handleAISettingChange('enableSummary', e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-500/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-800 dark:text-white">AI推薦機能</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">興味に基づいたニュース推薦</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={settings.ai.enableRecommendations}
+                      onChange={(e) => handleAISettingChange('enableRecommendations', e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-500/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                  </label>
+                </div>
+              </div>
+
+              {(settings.ai.enableSummary || settings.ai.enableRecommendations) && (
+                <div className="border-t pt-6 border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">興味・関心の設定</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        興味のあるトピック
+                      </label>
+                      <form onSubmit={handleAddTopic} className="flex gap-2 mb-3">
+                        <input
+                          type="text"
+                          value={newTopic}
+                          onChange={(e) => setNewTopic(e.target.value)}
+                          placeholder="例: テクノロジー、スポーツ、政治"
+                          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                        />
+                        <button
+                          type="submit"
+                          className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-1"
+                        >
+                          <Plus size={16} />
+                          追加
+                        </button>
+                      </form>
+                      <div className="flex flex-wrap gap-2">
+                        {settings.ai.interests.topics.map((topic) => (
+                          <span
+                            key={topic}
+                            className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full flex items-center gap-1 text-sm"
+                          >
+                            {topic}
+                            <button
+                              onClick={() => handleRemoveTopic(topic)}
+                              className="text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-200"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        キーワード
+                      </label>
+                      <form onSubmit={handleAddInterestKeyword} className="flex gap-2 mb-3">
+                        <input
+                          type="text"
+                          value={newKeyword}
+                          onChange={(e) => setNewKeyword(e.target.value)}
+                          placeholder="例: AI、環境問題、経済"
+                          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                        />
+                        <button
+                          type="submit"
+                          className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-1"
+                        >
+                          <Plus size={16} />
+                          追加
+                        </button>
+                      </form>
+                      <div className="flex flex-wrap gap-2">
+                        {settings.ai.interests.keywords.map((keyword) => (
+                          <span
+                            key={keyword}
+                            className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full flex items-center gap-1 text-sm"
+                          >
+                            {keyword}
+                            <button
+                              onClick={() => handleRemoveInterestKeyword(keyword)}
+                              className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        関心のあるカテゴリー
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {feedCategories.map(category => (
+                          <label key={category.id} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={settings.ai.interests.categories.includes(category.id)}
+                              onChange={(e) => {
+                                const categories = settings.ai.interests.categories;
+                                const newCategories = e.target.checked
+                                  ? [...categories, category.id]
+                                  : categories.filter(id => id !== category.id);
+                                handleInterestChange('categories', newCategories);
+                              }}
+                              className="rounded border-gray-300 text-purple-500 focus:ring-purple-500"
+                            />
+                            <span className="text-gray-800 dark:text-gray-300">{category.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : activeTab === 'preferences' ? (
             <div className="space-y-6">
