@@ -58,8 +58,8 @@ const DEFAULT_NEWS_IMAGE = 'https://photo-ten-iota.vercel.app/NipponNewsImage.pn
 
 // Multiple CORS proxy options for better reliability
 const CORS_PROXIES = [
-  'https://corsproxy.io/?',
   'https://api.allorigins.win/get?url=',
+  'https://corsproxy.io/?',
   'https://cors-anywhere.herokuapp.com/'
 ];
 
@@ -88,6 +88,11 @@ const parseRSSFeed = async (xmlText: string): Promise<any[]> => {
       }
     }
     
+    // Ensure we always have a valid image URL
+    if (!imageUrl || !isValidImageUrl(imageUrl)) {
+      imageUrl = DEFAULT_NEWS_IMAGE;
+    }
+    
     parsedItems.push({
       title,
       link,
@@ -99,6 +104,17 @@ const parseRSSFeed = async (xmlText: string): Promise<any[]> => {
   });
   
   return parsedItems;
+};
+
+// Validate image URL
+const isValidImageUrl = (url: string): boolean => {
+  if (!url) return false;
+  try {
+    const urlObj = new URL(url);
+    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+  } catch {
+    return false;
+  }
 };
 
 // Try multiple CORS proxies with fallback
@@ -180,7 +196,8 @@ const extractImageUrl = (content: string): string => {
     /<img[^>]+src="([^">]+)"/i,
     /<img[^>]+src='([^'>]+)'/i,
     /src="([^"]*\.(jpg|jpeg|png|gif|webp)[^"]*)"/i,
-    /src='([^']*\.(jpg|jpeg|png|gif|webp)[^']*)'/i
+    /src='([^']*\.(jpg|jpeg|png|gif|webp)[^']*)'/i,
+    /https?:\/\/[^\s<>"']+\.(jpg|jpeg|png|gif|webp)(\?[^\s<>"']*)?/i
   ];
   
   for (const pattern of patterns) {
@@ -188,7 +205,7 @@ const extractImageUrl = (content: string): string => {
     if (match && match[1]) {
       const imageUrl = match[1];
       // Validate that it's a proper image URL
-      if (imageUrl.startsWith('http') && /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(imageUrl)) {
+      if (isValidImageUrl(imageUrl) && /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(imageUrl)) {
         return imageUrl;
       }
     }
