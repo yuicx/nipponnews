@@ -44,6 +44,11 @@ const NewsCard: React.FC<NewsCardProps> = ({
     target.src = 'https://photo-ten-iota.vercel.app/NipponNewsImage.png';
   };
 
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement;
+    target.style.opacity = '1';
+  };
+
   const articleUrl = `${window.location.origin}?article=${encodeURIComponent(newsItem.link)}`;
   
   if (featured) {
@@ -52,10 +57,13 @@ const NewsCard: React.FC<NewsCardProps> = ({
         {shouldShowImages && (
           <div className="relative h-[400px] overflow-hidden">
             <img 
-              src={newsItem.imageUrl} 
+              src={newsItem.imageUrl || 'https://photo-ten-iota.vercel.app/NipponNewsImage.png'} 
               alt={newsItem.title}
               onError={handleImageError}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              onLoad={handleImageLoad}
+              className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 opacity-0"
+              style={{ opacity: 0 }}
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
               <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -143,12 +151,15 @@ const NewsCard: React.FC<NewsCardProps> = ({
     <div className="group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800 h-full">
       <div className="flex flex-col h-full">
         {shouldShowImages && (
-          <div className="relative h-48 overflow-hidden">
+          <div className="relative h-48 overflow-hidden bg-gray-200 dark:bg-gray-700">
             <img 
-              src={newsItem.imageUrl} 
+              src={newsItem.imageUrl || 'https://photo-ten-iota.vercel.app/NipponNewsImage.png'} 
               alt={newsItem.title}
               onError={handleImageError}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              onLoad={handleImageLoad}
+              className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 opacity-0"
+              style={{ opacity: 0 }}
+              loading="lazy"
             />
             <div className="absolute top-3 left-3">
               <span className="inline-block bg-[#CC0000] text-white text-xs font-semibold px-3 py-1 rounded-full">
