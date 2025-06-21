@@ -66,9 +66,9 @@ const Footer: React.FC<FooterProps> = ({ setActiveCategory }) => {
         </div>
         
         <div className="border-t border-gray-700 mt-8 pt-4 text-center text-sm text-gray-400">
-          <p>&copy; {currentYear} 日本ニュース. All rights reserved.</p>
+          <p>&copy; {currentYear} FLICK MEDIA. All rights reserved.</p>
           <p className="mt-1">
-            このサイトは教育目的で作成されています。ニュースコンテンツは各ソースからRSSフィードを通じて取得されています。
+            このサイトはツイニュース、フリックメディアによって運営されています。。ニュースコンテンツは各ソースからRSSフィードを通じて取得されています。
           </p>
         </div>
       </div>
