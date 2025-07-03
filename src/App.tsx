@@ -8,6 +8,7 @@ import ErrorState from './components/ErrorState';
 import SearchResults from './components/SearchResults';
 import PWAInstallButton from './components/PWAInstallButton';
 import AIRecommendations from './components/AIRecommendations';
+import AIRoute from './components/AIRoute';
 import { fetchNewsByCategory, fetchAllNews, searchNews } from './services/rssService';
 import { initializePWA } from './services/pwaService';
 import { initializeSettings, getUserSettings } from './services/settingsService';
@@ -22,6 +23,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<NewsItem[]>([]);
   const [settings, setSettings] = useState(getUserSettings());
+  const [currentRoute, setCurrentRoute] = useState('home');
   
   // Initialize PWA and settings on mount
   useEffect(() => {
@@ -54,10 +56,26 @@ function App() {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+
+  // Handle routing
+  useEffect(() => {
+    const handleRouteChange = () => {
+      const path = window.location.pathname;
+      if (path === '/ai') {
+        setCurrentRoute('ai');
+      } else {
+        setCurrentRoute('home');
+      }
+    };
+
+    handleRouteChange();
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, []);
   
   // Auto-refresh functionality
   useEffect(() => {
-    if (!settings.preferences.autoRefresh) return;
+    if (!settings.preferences.autoRefresh || currentRoute !== 'home') return;
     
     const interval = setInterval(() => {
       if (!searchQuery) {
@@ -66,7 +84,7 @@ function App() {
     }, settings.preferences.refreshInterval);
     
     return () => clearInterval(interval);
-  }, [settings.preferences.autoRefresh, settings.preferences.refreshInterval, searchQuery, activeCategory]);
+  }, [settings.preferences.autoRefresh, settings.preferences.refreshInterval, searchQuery, activeCategory, currentRoute]);
   
   // Check for article query parameter on mount
   useEffect(() => {
@@ -139,10 +157,12 @@ function App() {
   
   // Load news when component mounts or category changes
   useEffect(() => {
-    // Clear search when changing categories
-    clearSearch();
-    loadNews();
-  }, [activeCategory, settings.preferences.articlesPerPage]);
+    if (currentRoute === 'home') {
+      // Clear search when changing categories
+      clearSearch();
+      loadNews();
+    }
+  }, [activeCategory, settings.preferences.articlesPerPage, currentRoute]);
   
   // Get the correct title based on active category
   const getCategoryTitle = () => {
@@ -173,6 +193,34 @@ function App() {
       settings.preferences.reducedMotion ? 'reduce-motion' : ''
     } ${settings.preferences.readingMode ? 'reading-mode' : ''}`;
   };
+
+  // Handle navigation
+  const handleNavigation = (route: string) => {
+    if (route === 'ai') {
+      window.history.pushState({}, '', '/ai');
+      setCurrentRoute('ai');
+    } else {
+      window.history.pushState({}, '', '/');
+      setCurrentRoute('home');
+    }
+  };
+
+  // Render AI route
+  if (currentRoute === 'ai') {
+    return (
+      <div className={getLayoutClasses()}>
+        <Header 
+          setActiveCategory={setActiveCategory} 
+          activeCategory={activeCategory}
+          onSearch={handleSearch}
+          onNavigate={handleNavigation}
+          currentRoute={currentRoute}
+        />
+        <AIRoute />
+        <PWAInstallButton />
+      </div>
+    );
+  }
   
   return (
     <div className={getLayoutClasses()}>
@@ -180,6 +228,8 @@ function App() {
         setActiveCategory={setActiveCategory} 
         activeCategory={activeCategory}
         onSearch={handleSearch}
+        onNavigate={handleNavigation}
+        currentRoute={currentRoute}
       />
       
       <main className="flex-grow py-4 bg-gray-50 dark:bg-gray-900">
