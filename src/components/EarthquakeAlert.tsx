@@ -70,58 +70,21 @@ const EarthquakeAlert: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -120 }}
             transition={{ 
-              duration: 0.6, 
-              ease: "easeOut",
-              type: "spring",
-              stiffness: 100
+              duration: 0.3, 
+              ease: "easeOut"
             }}
             className="fixed top-0 left-0 right-0 z-[60] shadow-2xl"
           >
             {/* Main Alert Bar */}
-            <div className={`${scaleColor} text-white relative overflow-hidden`}>
-              {/* Animated Background Pattern */}
-              <motion.div
-                className="absolute inset-0 opacity-10"
-                animate={{
-                  backgroundPosition: ['0% 0%', '100% 100%'],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  repeatType: "reverse"
-                }}
-                style={{
-                  backgroundImage: 'linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.1) 75%)',
-                  backgroundSize: '20px 20px'
-                }}
-              />
-
+            <div className={`${scaleColor} text-white relative`}>
               <div className="container mx-auto px-4 py-4 relative">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4 flex-1">
-                    {/* Alert Icon with Animation */}
+                    {/* Alert Icon - Static */}
                     <div className="flex items-center gap-3">
-                      <motion.div
-                        animate={{ 
-                          scale: urgencyLevel === 'critical' ? [1, 1.3, 1] : [1, 1.15, 1],
-                          rotate: urgencyLevel === 'critical' ? [0, 8, -8, 0] : [0, 4, -4, 0]
-                        }}
-                        transition={{ 
-                          duration: urgencyLevel === 'critical' ? 0.8 : 1.2,
-                          repeat: Infinity,
-                          repeatType: "reverse"
-                        }}
-                        className="relative"
-                      >
+                      <div className="relative">
                         <AlertTriangle size={28} className="text-white drop-shadow-lg" />
-                        {urgencyLevel === 'critical' && (
-                          <motion.div
-                            className="absolute inset-0 border-2 border-white rounded-full"
-                            animate={{ scale: [1, 1.5], opacity: [1, 0] }}
-                            transition={{ duration: 1, repeat: Infinity }}
-                          />
-                        )}
-                      </motion.div>
+                      </div>
                       
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
@@ -184,35 +147,22 @@ const EarthquakeAlert: React.FC = () => {
                   </div>
 
                   {/* Dismiss Button */}
-                  <motion.button
+                  <button
                     onClick={() => handleDismiss(alert.id)}
                     className="ml-4 p-2 hover:bg-white/20 rounded-full transition-colors"
                     title="閉じる"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <X size={22} />
-                  </motion.button>
+                  </button>
                 </div>
               </div>
 
-              {/* Progress Bar */}
-              <motion.div
-                className="h-1 bg-white/30"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 3, ease: "easeOut" }}
-                style={{ transformOrigin: "left" }}
-              />
+              {/* Static Progress Bar */}
+              <div className="h-1 bg-white/30" />
             </div>
 
             {/* Mobile Safety Message */}
-            <motion.div 
-              className="xl:hidden bg-black/30 backdrop-blur-sm text-white text-center py-3"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
+            <div className="xl:hidden bg-black/30 backdrop-blur-sm text-white text-center py-3">
               <div className="flex items-center justify-center gap-3">
                 <Shield size={18} className="text-yellow-200" />
                 <div className="text-sm">
@@ -220,23 +170,7 @@ const EarthquakeAlert: React.FC = () => {
                   <span className="ml-2 opacity-90">• 机の下に隠れる • 火を消す</span>
                 </div>
               </div>
-            </motion.div>
-
-            {/* Pulse Effect for Critical Alerts */}
-            {urgencyLevel === 'critical' && (
-              <motion.div
-                className="absolute inset-0 border-4 border-white/50 pointer-events-none"
-                animate={{ 
-                  scale: [1, 1.02, 1],
-                  opacity: [0.5, 0.8, 0.5]
-                }}
-                transition={{ 
-                  duration: 1.5,
-                  repeat: Infinity,
-                  repeatType: "reverse"
-                }}
-              />
-            )}
+            </div>
           </motion.div>
         );
       })}
