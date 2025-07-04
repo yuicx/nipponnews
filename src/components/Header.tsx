@@ -50,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({
               <img 
                 src="https://photo-ten-iota.vercel.app/nippon%20news.png" 
                 alt="日本ニュース"
-                className="h-10 w-auto"
+                className="h-8 md:h-10 w-auto"
               />
             </button>
           </div>
