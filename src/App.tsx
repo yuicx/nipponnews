@@ -9,10 +9,12 @@ import SearchResults from './components/SearchResults';
 import PWAInstallButton from './components/PWAInstallButton';
 import AIRecommendations from './components/AIRecommendations';
 import AIRoute from './components/AIRoute';
+import EarthquakeAlert from './components/EarthquakeAlert';
 import { fetchNewsByCategory, fetchAllNews, searchNews } from './services/rssService';
 import { initializePWA } from './services/pwaService';
 import { initializeSettings, getUserSettings } from './services/settingsService';
 import { geminiService } from './services/geminiService';
+import { earthquakeService } from './services/earthquakeService';
 import { NewsItem } from './types';
 
 function App() {
@@ -54,7 +56,11 @@ function App() {
     };
     
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      // Clean up earthquake service
+      earthquakeService.stopMonitoring();
+    };
   }, []);
 
   // Handle routing
@@ -209,6 +215,7 @@ function App() {
   if (currentRoute === 'ai') {
     return (
       <div className={getLayoutClasses()}>
+        <EarthquakeAlert />
         <Header 
           setActiveCategory={setActiveCategory} 
           activeCategory={activeCategory}
@@ -224,6 +231,7 @@ function App() {
   
   return (
     <div className={getLayoutClasses()}>
+      <EarthquakeAlert />
       <Header 
         setActiveCategory={setActiveCategory} 
         activeCategory={activeCategory}
