@@ -9,16 +9,17 @@ import {
   ExternalLink,
   Copy,
   Check,
-  Shield
+  Shield,
+  AlertCircle
 } from 'lucide-react';
 import ApiDocumentation from './ApiDocumentation';
-import { nipponNewsApi } from '../services/apiService';
 
 const ApiRoute: React.FC = () => {
   const [activeDemo, setActiveDemo] = useState('search');
   const [demoData, setDemoData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const copyToClipboard = async (url: string, id: string) => {
     try {
@@ -33,20 +34,30 @@ const ApiRoute: React.FC = () => {
   const runDemo = async (type: string) => {
     setIsLoading(true);
     setActiveDemo(type);
+    setError(null);
     
     try {
-      let result;
+      let url: string;
       switch (type) {
         case 'search':
-          result = await nipponNewsApi.searchNews({ q: 'AI', limit: 5 });
+          url = '/api/news/search?q=AI&limit=5';
           break;
         default:
-          result = await nipponNewsApi.getHealthStatus();
+          url = '/api/health';
       }
+
+      const response = await fetch(url);
+      const result = await response.json();
       setDemoData(result);
     } catch (error) {
       console.error('Demo error:', error);
-      setDemoData({ success: false, error: 'デモの実行に失敗しました' });
+      setError('APIの実行に失敗しました。しばらく後にもう一度お試しください。');
+      setDemoData({ 
+        success: false, 
+        error: 'APIの実行に失敗しました',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -166,6 +177,16 @@ const ApiRoute: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* Error Display */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <AlertCircle size={20} />
+                  <span className="font-medium">{error}</span>
+                </div>
+              </div>
+            )}
 
             {/* API URL Display */}
             <div className="mb-6">
