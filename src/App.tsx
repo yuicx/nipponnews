@@ -9,6 +9,7 @@ import SearchResults from './components/SearchResults';
 import PWAInstallButton from './components/PWAInstallButton';
 import AIRecommendations from './components/AIRecommendations';
 import AIRoute from './components/AIRoute';
+import ApiRoute from './components/ApiRoute';
 import EarthquakeAlert from './components/EarthquakeAlert';
 import { fetchNewsByCategory, fetchAllNews, searchNews } from './services/rssService';
 import { initializePWA } from './services/pwaService';
@@ -69,6 +70,8 @@ function App() {
       const path = window.location.pathname;
       if (path === '/ai') {
         setCurrentRoute('ai');
+      } else if (path === '/api') {
+        setCurrentRoute('api');
       } else {
         setCurrentRoute('home');
       }
@@ -205,11 +208,32 @@ function App() {
     if (route === 'ai') {
       window.history.pushState({}, '', '/ai');
       setCurrentRoute('ai');
+    } else if (route === 'api') {
+      window.history.pushState({}, '', '/api');
+      setCurrentRoute('api');
     } else {
       window.history.pushState({}, '', '/');
       setCurrentRoute('home');
     }
   };
+
+  // Render API route
+  if (currentRoute === 'api') {
+    return (
+      <div className={getLayoutClasses()}>
+        <EarthquakeAlert />
+        <Header 
+          setActiveCategory={setActiveCategory} 
+          activeCategory={activeCategory}
+          onSearch={handleSearch}
+          onNavigate={handleNavigation}
+          currentRoute={currentRoute}
+        />
+        <ApiRoute />
+        <PWAInstallButton />
+      </div>
+    );
+  }
 
   // Render AI route
   if (currentRoute === 'ai') {
