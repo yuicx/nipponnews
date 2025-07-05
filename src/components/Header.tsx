@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Menu, X, Settings, Bot, Home } from 'lucide-react';
+import { Search, Menu, X, Settings, Bot, Home, Code } from 'lucide-react';
 import { feedCategories } from '../services/rssService';
 import SettingsModal from './SettingsModal';
 
@@ -50,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({
               <img 
                 src="https://photo-ten-iota.vercel.app/nippon%20news.png" 
                 alt="日本ニュース"
-                className="h-8 md:h-10 w-auto"
+                className="h-7 md:h-9 w-auto"
               />
             </button>
           </div>
@@ -74,6 +74,17 @@ const Header: React.FC<HeaderProps> = ({
           )}
           
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleNavigation(currentRoute === 'api' ? 'home' : 'api')}
+              className={`p-2 rounded-md transition-colors ${
+                currentRoute === 'api'
+                  ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+              }`}
+              title={currentRoute === 'api' ? 'ホームに戻る' : 'API'}
+            >
+              {currentRoute === 'api' ? <Home size={20} /> : <Code size={20} />}
+            </button>
             <button
               onClick={() => handleNavigation(currentRoute === 'ai' ? 'home' : 'ai')}
               className={`p-2 rounded-md transition-colors ${
@@ -151,6 +162,17 @@ const Header: React.FC<HeaderProps> = ({
           <div className="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
             <div className="container mx-auto px-4 py-4">
               <div className="space-y-2">
+                <button
+                  onClick={() => handleNavigation(currentRoute === 'api' ? 'home' : 'api')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    currentRoute === 'api'
+                      ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                      : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {currentRoute === 'api' ? <Home size={20} /> : <Code size={20} />}
+                  <span>{currentRoute === 'api' ? 'ホーム' : 'API'}</span>
+                </button>
                 <button
                   onClick={() => handleNavigation(currentRoute === 'ai' ? 'home' : 'ai')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
