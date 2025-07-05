@@ -30,12 +30,25 @@ export interface HealthStatus {
   version: string;
   endpoints: string[];
   lastUpdated: string;
+  performance: {
+    averageResponseTime: number;
+    totalRequests: number;
+    successRate: number;
+  };
 }
 
 const API_VERSION = '1.0.0';
 
 class NipponNewsApiService {
+  private startTime = Date.now();
+  private requestCount = 0;
+  private successCount = 0;
+  private totalResponseTime = 0;
+
   private createResponse<T>(data: T, success: boolean = true, error?: string): ApiResponse<T> {
+    this.requestCount++;
+    if (success) this.successCount++;
+    
     return {
       success,
       data: success ? data : undefined,
@@ -45,16 +58,8 @@ class NipponNewsApiService {
     };
   }
 
-  private extractTags(text: string): string[] {
-    const commonTags = [
-      '政治', '経済', 'スポーツ', 'エンタメ', 'IT', '科学', '国際', '社会',
-      '新型コロナ', 'AI', '株価', '円安', '選挙', 'オリンピック', '地震',
-      '台風', '気候変動', 'DX', 'NFT', '仮想通貨', 'メタバース'
-    ];
-
-    return commonTags.filter(tag => 
-      text.toLowerCase().includes(tag.toLowerCase())
-    ).slice(0, 5);
+  private recordResponseTime(time: number) {
+    this.totalResponseTime += time;
   }
 
   // GET /api/news/search - ニュース検索
@@ -64,6 +69,8 @@ class NipponNewsApiService {
     page?: number;
     category?: string;
   }): Promise<ApiResponse<SearchResult>> {
+    const startTime = Date.now();
+    
     try {
       const { q, limit = 20, page = 1, category } = params;
       
@@ -71,7 +78,7 @@ class NipponNewsApiService {
         return this.createResponse(null, false, '検索クエリが必要です');
       }
 
-      const startTime = Date.now();
+      // Dynamic import to avoid issues in Vercel environment
       const { searchNews } = await import('./rssService');
       
       let searchResults = await searchNews(q);
@@ -88,6 +95,7 @@ class NipponNewsApiService {
       }
 
       const searchTime = Date.now() - startTime;
+      this.recordResponseTime(searchTime);
 
       // Pagination
       const startIndex = (page - 1) * limit;
@@ -116,39 +124,63 @@ class NipponNewsApiService {
 
       return this.createResponse(response);
     } catch (error) {
+      const responseTime = Date.now() - startTime;
+      this.recordResponseTime(responseTime);
       return this.createResponse(null, false, `検索エラー: ${error}`);
     }
   }
 
   // GET /api/health - API健康状態チェック
   async getHealthStatus(): Promise<ApiResponse<HealthStatus>> {
+    const startTime = Date.now();
+    
     try {
-      // Test search functionality
-      const testSearch = await this.searchNews({ q: 'test', limit: 1 });
+      // Test search functionality with a simple query
+      const testSearch = await this.searchNews({ q: 'ニュース', limit: 1 });
       const isSearchWorking = testSearch.success;
+
+      const uptime = Date.now() - this.startTime;
+      const averageResponseTime = this.requestCount > 0 ? this.totalResponseTime / this.requestCount : 0;
+      const successRate = this.requestCount > 0 ? (this.successCount / this.requestCount) * 100 : 100;
 
       const healthData: HealthStatus = {
         status: isSearchWorking ? 'healthy' : 'degraded',
-        uptime: performance.now(),
+        uptime,
         version: API_VERSION,
         endpoints: [
           'GET /api/news/search',
           'GET /api/health'
         ],
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        performance: {
+          averageResponseTime: Math.round(averageResponseTime),
+          totalRequests: this.requestCount,
+          successRate: Math.round(successRate * 100) / 100
+        }
       };
+
+      const responseTime = Date.now() - startTime;
+      this.recordResponseTime(responseTime);
 
       return this.createResponse(healthData);
     } catch (error) {
+      const responseTime = Date.now() - startTime;
+      this.recordResponseTime(responseTime);
+      
       const healthData: HealthStatus = {
         status: 'unhealthy',
-        uptime: performance.now(),
+        uptime: Date.now() - this.startTime,
         version: API_VERSION,
         endpoints: [
           'GET /api/news/search',
           'GET /api/health'
         ],
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        performance: {
+          averageResponseTime: Math.round(this.totalResponseTime / Math.max(this.requestCount, 1)),
+          totalRequests: this.requestCount,
+          successRate: Math.round((this.successCount / Math.max(this.requestCount, 1)) * 10000) / 100
+        }
       };
 
       return this.createResponse(healthData, false, `ヘルスチェックエラー: ${error}`);
