@@ -75,17 +75,6 @@ const Header: React.FC<HeaderProps> = ({
           
           <div className="flex items-center gap-2">
             <button
-              onClick={() => handleNavigation(currentRoute === 'api' ? 'home' : 'api')}
-              className={`p-2 rounded-md transition-colors ${
-                currentRoute === 'api'
-                  ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
-              }`}
-              title={currentRoute === 'api' ? 'ホームに戻る' : 'API'}
-            >
-              {currentRoute === 'api' ? <Home size={20} /> : <Code size={20} />}
-            </button>
-            <button
               onClick={() => handleNavigation(currentRoute === 'ai' ? 'home' : 'ai')}
               className={`p-2 rounded-md transition-colors ${
                 currentRoute === 'ai'
